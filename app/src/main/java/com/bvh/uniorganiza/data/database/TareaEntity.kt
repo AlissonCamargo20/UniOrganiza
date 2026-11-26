@@ -4,6 +4,7 @@ import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
+import androidx.room.ColumnInfo
 
 // Aquí se crea la tabla de tareas
 @Entity(
@@ -12,33 +13,39 @@ import androidx.room.PrimaryKey
         ForeignKey(
             entity = UsuarioEntity::class,
             parentColumns = ["idUsuario"],
-            childColumns = ["idUsuario"],
+            childColumns = ["id_usuario"],
             onDelete = ForeignKey.CASCADE
+        ),
+        ForeignKey(
+            entity = CategoriaEntity::class,
+            parentColumns = ["id_categoria"],
+            childColumns = ["id_categoria"]
         )
     ],
-    indices = [Index(value = ["idUsuario"])]
+    indices = [
+        Index(value = ["id_usuario"]),
+        Index(value = ["id_categoria"])
+    ]
 )
 data class TareaEntity(
 
-    // Aquí se genera el identificador de cada tarea
     @PrimaryKey(autoGenerate = true)
+    @ColumnInfo(name = "id_tarea")
     val idTarea: Int = 0,
 
-    // Aquí se guarda el nombre de la tarea
     val nombre: String,
 
-    // Aquí se guarda la descripción
     val descripcion: String,
 
-    // Aquí se guarda la fecha de entrega
     val fecha: String,
 
-    // Aquí se guarda la hora de entrega
     val hora: String,
 
-    // Aquí se indica si la tarea está completada
     val completada: Boolean = false,
 
-    // Aquí se relaciona la tarea con su usuario
-    val idUsuario: Int
+    @ColumnInfo(name = "id_usuario")
+    val idUsuario: Int,
+
+    @ColumnInfo(name = "id_categoria")
+    val idCategoria: Int
 )

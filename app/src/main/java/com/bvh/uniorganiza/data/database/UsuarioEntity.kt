@@ -1,5 +1,6 @@
 package com.bvh.uniorganiza.data.database
 
+import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.Index
 import androidx.room.PrimaryKey
@@ -11,16 +12,13 @@ import androidx.room.PrimaryKey
 )
 data class UsuarioEntity(
 
-    // Aquí se genera el identificador de cada usuario
     @PrimaryKey(autoGenerate = true)
+    @ColumnInfo(name = "id_usuario")
     val idUsuario: Int = 0,
 
-    // Aquí se guarda el nombre completo
     val nombre: String,
 
-    // Aquí se guarda el correo electrónico
     val correo: String,
 
-    // Aquí se guarda la contraseña
     val contrasena: String
 )
