@@ -19,7 +19,7 @@ interface TareaDao {
     suspend fun obtenerTareas(): List<TareaEntity>
 
     // Aquí se consultan las tareas de un usuario
-    @Query("SELECT * FROM tarea WHERE idUsuario = :idUsuario")
+    @Query("SELECT * FROM tarea WHERE id_usuario = :idUsuario")
     suspend fun obtenerTareasPorUsuario(idUsuario: Int): List<TareaEntity>
 
     // Aquí se consultan las tareas pendientes
