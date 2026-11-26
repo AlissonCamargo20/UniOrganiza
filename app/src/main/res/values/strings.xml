@@ -1,0 +1,33 @@
+<resources>
+    <string name="app_name">UniOrganiza</string>
+
+    <!-- Pantalla de inicio -->
+    <string name="bienvenida">¡Bienvenido a UniOrganiza!</string>
+    <string name="asistente">Tu asistente universitario</string>
+    <string name="descripcion">Organiza tus actividades académicas de manera fácil y mantén todo bajo control</string>
+    <string name="iniciar_sesion">Iniciar sesión</string>
+    <string name="crear_cuenta">Crear cuenta</string>
+
+    <!-- Pantalla de inicio de sesión -->
+    <string name="correo">Correo electrónico</string>
+    <string name="contrasena">Contraseña</string>
+    <string name="entrar">Entrar</string>
+    <string name="sin_cuenta">¿No tienes cuenta? Regístrate</string>
+    <string name="regresar">Regresar</string>
+    <string name="completar_campos">Completa todos los campos para continuar</string>
+    <string name="aceptar">Aceptar</string>
+
+    <!-- Pantalla de registro -->
+    <string name="nombre_completo">Nombre completo</string>
+    <string name="confirmar_contrasena">Confirmar contraseña</string>
+    <string name="registrarme">Registrarme</string>
+    <string name="campos_vacios">Completa todos los campos</string>
+    <string name="contrasenas_diferentes">Las contraseñas no coinciden</string>
+    <string name="registro_desarrollo">El registro todavía está en desarrollo</string>
+    <string name="registro">Registro</string>
+    <string name="ya_tienes_cuenta">¿Ya tienes cuenta? Inicia sesión</string>
+
+    <!-- Pantalla de bienvenida -->
+    <string name="mensaje_bienvenida">Ya puedes comenzar a organizar tus actividades</string>
+    <string name="cerrar_sesion">Cerrar sesión</string>
+</resources>
