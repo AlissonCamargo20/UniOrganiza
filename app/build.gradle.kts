@@ -47,6 +47,7 @@ dependencies {
     implementation(libs.androidx.compose.ui.graphics)
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation("androidx.core:core-splashscreen:1.0.1")
+    implementation("androidx.compose.material:material-icons-extended")
 
     // Google Fonts
     implementation("androidx.compose.ui:ui-text-google-fonts")

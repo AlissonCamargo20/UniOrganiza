@@ -6,24 +6,29 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
-import com.bvh.uniorganiza.R
+import com.bvh.uniorganiza.data.database.UsuarioDao
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
-// Aquí se crea la pantalla de iniciar sesión
+// Aquí se crea la pantalla de inicio de sesión
 @Composable
 fun PantallaLogin(
     onRegresar: () -> Unit,
     onRegistrar: () -> Unit,
-    onEntrar: () -> Unit
+    onEntrar: (Int) -> Unit,
+    usuarioDao: UsuarioDao
 ) {
-    // Aquí se guardan los datos que escribo
     var correo by remember { mutableStateOf("") }
     var contrasena by remember { mutableStateOf("") }
-    var mensaje by remember { mutableStateOf(false) }
+    var mensaje by remember { mutableStateOf("") }
+    var cargando by remember { mutableStateOf(false) }
+
+    val scope = rememberCoroutineScope()
 
     Column(
         modifier = Modifier
@@ -32,10 +37,8 @@ fun PantallaLogin(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-
-        // Aquí se muestra el título de inicio de sesión
         Text(
-            text = stringResource(R.string.iniciar_sesion),
+            text = "Iniciar sesión",
             style = MaterialTheme.typography.headlineMedium,
             color = MaterialTheme.colorScheme.primary,
             fontWeight = FontWeight.Bold
@@ -43,12 +46,11 @@ fun PantallaLogin(
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // Aquí se escribe el correo electrónico
         OutlinedTextField(
             value = correo,
             onValueChange = { correo = it },
             modifier = Modifier.fillMaxWidth(),
-            label = { Text(stringResource(R.string.correo)) },
+            label = { Text("Correo electrónico") },
             singleLine = true,
             keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.Email
@@ -57,43 +59,70 @@ fun PantallaLogin(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Aquí se escribe la contraseña
         OutlinedTextField(
             value = contrasena,
             onValueChange = { contrasena = it },
             modifier = Modifier.fillMaxWidth(),
-            label = { Text(stringResource(R.string.contrasena)) },
+            label = { Text("Contraseña") },
             singleLine = true,
             visualTransformation = PasswordVisualTransformation()
         )
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // Aquí se crea el botón para entrar
         Button(
             onClick = {
-                if (correo.isNotBlank() && contrasena.isNotBlank()) {
-                    onEntrar()
+                if (correo.isBlank() || contrasena.isBlank()) {
+                    mensaje = "Completa todos los campos"
                 } else {
-                    mensaje = true
+                    cargando = true
+
+                    scope.launch {
+                        try {
+                            val usuario = withContext(Dispatchers.IO) {
+                                usuarioDao.buscarPorCorreo(
+                                    correo.trim().lowercase()
+                                )
+                            }
+
+                            when {
+                                usuario == null -> {
+                                    mensaje = "No existe una cuenta con ese correo"
+                                }
+
+                                usuario.contrasena != contrasena -> {
+                                    mensaje = "La contraseña es incorrecta"
+                                }
+
+                                else -> {
+                                    mensaje = ""
+                                    onEntrar(usuario.idUsuario)
+                                }
+                            }
+                        } catch (e: Exception) {
+                            mensaje = "Ocurrió un error al iniciar sesión"
+                        } finally {
+                            cargando = false
+                        }
+                    }
                 }
             },
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            enabled = !cargando
         ) {
-            Text(stringResource(R.string.entrar))
+            Text(
+                if (cargando) "Verificando..." else "Entrar"
+            )
         }
 
-        // Aquí se muestra un aviso si faltan datos
-        if (mensaje) {
+        if (mensaje.isNotEmpty()) {
             AlertDialog(
-                onDismissRequest = { mensaje = false },
-                title = { Text(stringResource(R.string.iniciar_sesion)) },
-                text = {
-                    Text(stringResource(R.string.completar_campos))
-                },
+                onDismissRequest = { mensaje = "" },
+                title = { Text("Inicio de sesión") },
+                text = { Text(mensaje) },
                 confirmButton = {
-                    TextButton(onClick = { mensaje = false }) {
-                        Text(stringResource(R.string.aceptar))
+                    TextButton(onClick = { mensaje = "" }) {
+                        Text("Aceptar")
                     }
                 }
             )
@@ -101,14 +130,12 @@ fun PantallaLogin(
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        // Aquí se crea el acceso a la pantalla de registro
         TextButton(onClick = onRegistrar) {
-            Text(stringResource(R.string.sin_cuenta))
+            Text("¿No tienes cuenta? Regístrate")
         }
 
-        // Aquí se crea el botón para regresar
         TextButton(onClick = onRegresar) {
-            Text(stringResource(R.string.regresar))
+            Text("Regresar")
         }
     }
 }

@@ -4,68 +4,82 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.runtime.*
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
-import androidx.lifecycle.lifecycleScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import com.bvh.uniorganiza.data.database.DatabaseProvider
 import com.bvh.uniorganiza.ui.screens.PantallaBienvenida
 import com.bvh.uniorganiza.ui.screens.PantallaInicio
 import com.bvh.uniorganiza.ui.screens.PantallaLogin
 import com.bvh.uniorganiza.ui.screens.PantallaRegistro
+import com.bvh.uniorganiza.ui.screens.PantallaPrincipal
 import com.bvh.uniorganiza.ui.theme.AppTheme
 
 class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        // Aquí se activa la pantalla de apertura
         installSplashScreen()
-
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
-        // Aquí se conecta la base de datos
         val baseDatos = DatabaseProvider.obtenerBaseDatos(applicationContext)
-
-        // Aquí se comprueba la conexión con las dos tablas
-        lifecycleScope.launch(Dispatchers.IO) {
-            baseDatos.usuarioDao().obtenerUsuarios()
-            baseDatos.tareaDao().obtenerTareas()
-        }
 
         setContent {
             AppTheme {
+                val pantalla = remember { mutableStateOf("inicio") }
+                val usuarioId = remember { mutableIntStateOf(0) }
 
-                // Aquí se controla qué pantalla se muestra
-                var pantalla by remember { mutableStateOf("inicio") }
+                when (pantalla.value) {
 
-                // Aquí se cambia entre las pantallas de la aplicación
-                when (pantalla) {
-
-                    // Aquí se muestra la pantalla de inicio
                     "inicio" -> PantallaInicio(
-                        onIniciar = { pantalla = "login" },
-                        onRegistrar = { pantalla = "registro" }
+                        onIniciar = {
+                            pantalla.value = "login"
+                        },
+                        onRegistrar = {
+                            pantalla.value = "registro"
+                        }
                     )
 
-                    // Aquí se muestra la pantalla de inicio de sesión
                     "login" -> PantallaLogin(
-                        onRegresar = { pantalla = "inicio" },
-                        onRegistrar = { pantalla = "registro" },
-                        onEntrar = { pantalla = "bienvenida" }
-                    )
-
-                    // Aquí se muestra la pantalla de registro
-                    "registro" -> PantallaRegistro(
-                        onRegresar = { pantalla = "inicio" },
-                        onIniciar = { pantalla = "login" },
+                        onRegresar = {
+                            pantalla.value = "inicio"
+                        },
+                        onRegistrar = {
+                            pantalla.value = "registro"
+                        },
+                        onEntrar = { id ->
+                            usuarioId.intValue = id
+                            pantalla.value = "principal"
+                        },
                         usuarioDao = baseDatos.usuarioDao()
                     )
 
-                    // Aquí se muestra la pantalla de bienvenida
+                    "registro" -> PantallaRegistro(
+                        onRegresar = {
+                            pantalla.value = "inicio"
+                        },
+                        onIniciar = {
+                            pantalla.value = "login"
+                        },
+                        usuarioDao = baseDatos.usuarioDao()
+                    )
+
+                    "principal" -> PantallaPrincipal(
+                        usuarioId = usuarioId.intValue,
+                        tareaDao = baseDatos.tareaDao(),
+                        categoriaDao = baseDatos.categoriaDao(),
+                        recordatorioDao = baseDatos.recordatorioDao(),
+                        onCerrarSesion = {
+                            usuarioId.intValue = 0
+                            pantalla.value = "inicio"
+                        }
+                    )
+
                     "bienvenida" -> PantallaBienvenida(
-                        onCerrar = { pantalla = "inicio" }
+                        onCerrar = {
+                            pantalla.value = "inicio"
+                        }
                     )
                 }
             }
