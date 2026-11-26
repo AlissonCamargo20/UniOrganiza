@@ -1,12 +1,8 @@
 package com.bvh.uniorganiza.data.database
 
-import androidx.room.Dao
-import androidx.room.Delete
-import androidx.room.Insert
-import androidx.room.Query
-import androidx.room.Update
+import androidx.room.*
+import kotlinx.coroutines.flow.Flow
 
-// Aquí se definen las operaciones de la tabla categoría
 @Dao
 interface CategoriaDao {
 
@@ -15,6 +11,9 @@ interface CategoriaDao {
 
     @Query("SELECT * FROM categoria")
     suspend fun obtenerCategorias(): List<CategoriaEntity>
+
+    @Query("SELECT * FROM categoria")
+    fun observarCategorias(): Flow<List<CategoriaEntity>>
 
     @Query("SELECT * FROM categoria WHERE id_categoria = :idCategoria")
     suspend fun buscarCategoria(idCategoria: Int): CategoriaEntity?

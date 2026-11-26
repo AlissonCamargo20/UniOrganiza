@@ -4,17 +4,15 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import com.bvh.uniorganiza.data.database.DatabaseProvider
-import com.bvh.uniorganiza.ui.screens.PantallaBienvenida
-import com.bvh.uniorganiza.ui.screens.PantallaInicio
-import com.bvh.uniorganiza.ui.screens.PantallaLogin
-import com.bvh.uniorganiza.ui.screens.PantallaRegistro
-import com.bvh.uniorganiza.ui.screens.PantallaPrincipal
+import com.bvh.uniorganiza.data.repository.UniOrganizaRepository
+import com.bvh.uniorganiza.ui.screens.*
 import com.bvh.uniorganiza.ui.theme.AppTheme
+import com.bvh.uniorganiza.ui.viewmodel.UniOrganizaViewModel
+import com.bvh.uniorganiza.ui.viewmodel.UniOrganizaViewModelFactory
 
 class MainActivity : ComponentActivity() {
 
@@ -23,66 +21,106 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
-        val baseDatos = DatabaseProvider.obtenerBaseDatos(applicationContext)
+        val baseDatos =
+            DatabaseProvider.obtenerBaseDatos(applicationContext)
 
         setContent {
             AppTheme {
-                val pantalla = remember { mutableStateOf("inicio") }
-                val usuarioId = remember { mutableIntStateOf(0) }
+                var pantalla by remember {
+                    mutableStateOf("inicio")
+                }
 
-                when (pantalla.value) {
+                var usuarioId by remember {
+                    mutableIntStateOf(0)
+                }
+
+                when (pantalla) {
 
                     "inicio" -> PantallaInicio(
                         onIniciar = {
-                            pantalla.value = "login"
+                            pantalla = "login"
                         },
                         onRegistrar = {
-                            pantalla.value = "registro"
+                            pantalla = "registro"
                         }
                     )
 
                     "login" -> PantallaLogin(
                         onRegresar = {
-                            pantalla.value = "inicio"
+                            pantalla = "inicio"
                         },
                         onRegistrar = {
-                            pantalla.value = "registro"
+                            pantalla = "registro"
                         },
                         onEntrar = { id ->
-                            usuarioId.intValue = id
-                            pantalla.value = "principal"
+                            usuarioId = id
+                            pantalla = "principal"
                         },
                         usuarioDao = baseDatos.usuarioDao()
                     )
 
                     "registro" -> PantallaRegistro(
                         onRegresar = {
-                            pantalla.value = "inicio"
+                            pantalla = "inicio"
                         },
                         onIniciar = {
-                            pantalla.value = "login"
+                            pantalla = "login"
                         },
                         usuarioDao = baseDatos.usuarioDao()
                     )
 
-                    "principal" -> PantallaPrincipal(
-                        usuarioId = usuarioId.intValue,
-                        tareaDao = baseDatos.tareaDao(),
-                        categoriaDao = baseDatos.categoriaDao(),
-                        recordatorioDao = baseDatos.recordatorioDao(),
-                        onCerrarSesion = {
-                            usuarioId.intValue = 0
-                            pantalla.value = "inicio"
-                        }
-                    )
+                    "principal" -> {
+                        PrincipalConViewModel(
+                            usuarioId = usuarioId,
+                            baseDatos = baseDatos,
+                            onCerrarSesion = {
+                                usuarioId = 0
+                                pantalla = "inicio"
+                            }
+                        )
+                    }
 
                     "bienvenida" -> PantallaBienvenida(
                         onCerrar = {
-                            pantalla.value = "inicio"
+                            pantalla = "inicio"
                         }
                     )
                 }
             }
         }
     }
+}
+
+@Composable
+private fun PrincipalConViewModel(
+    usuarioId: Int,
+    baseDatos: com.bvh.uniorganiza.data.database.UniOrganizaDatabase,
+    onCerrarSesion: () -> Unit
+) {
+    val repository = remember(usuarioId) {
+        UniOrganizaRepository(
+            baseDatos.tareaDao(),
+            baseDatos.categoriaDao()
+        )
+    }
+
+    val factory = remember(usuarioId) {
+        UniOrganizaViewModelFactory(
+            repository,
+            usuarioId
+        )
+    }
+
+    val principalViewModel: UniOrganizaViewModel = viewModel(
+        key = "UniOrganiza-$usuarioId",
+        factory = factory
+    )
+
+    PantallaPrincipal(
+        usuarioId = usuarioId,
+        tareaDao = baseDatos.tareaDao(),
+        recordatorioDao = baseDatos.recordatorioDao(),
+        viewModel = principalViewModel,
+        onCerrarSesion = onCerrarSesion
+    )
 }

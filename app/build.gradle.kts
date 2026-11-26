@@ -49,6 +49,9 @@ dependencies {
     implementation("androidx.core:core-splashscreen:1.0.1")
     implementation("androidx.compose.material:material-icons-extended")
 
+    //Repositorio
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.11.0")
+
     // Google Fonts
     implementation("androidx.compose.ui:ui-text-google-fonts")
 
